@@ -4,7 +4,7 @@ function createPointListLoadingTemplate() {
   return '<p class="trip-events__msg">Loading...</p>';
 }
 
-export default class EventListLoadingView {
+export default class PointListLoadingView {
   getTemplate() {
     return createPointListLoadingTemplate();
   }

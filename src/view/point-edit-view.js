@@ -161,7 +161,7 @@ function createPontEditTemplate() {
   );
 }
 
-export default class EventEditView {
+export default class PointEditView {
   getTemplate() {
     return createPontEditTemplate();
   }

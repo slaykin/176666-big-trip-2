@@ -43,7 +43,7 @@ function createPointViewTemplate() {
   );
 }
 
-export default class EventView {
+export default class PointView {
   getTemplate() {
     return createPointViewTemplate();
   }
