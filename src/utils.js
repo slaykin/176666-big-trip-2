@@ -1,3 +1,4 @@
+import { FilterType } from './const.js';
 import dayjs from 'dayjs';
 
 const MINUTES_IN_HOUR = 60;
@@ -58,6 +59,23 @@ function createIdGenerator() {
 
 const idGenerator = createIdGenerator();
 
+function compareDates({dateFrom, dateTo}) {
+  if (new Date(dateFrom) > new Date()) {
+    return 'future';
+  } else if (new Date(dateTo) < new Date()) {
+    return 'past';
+  } else {
+    return 'present';
+  }
+}
+
+const filter = {
+  [FilterType.EVERYTHING]: (events) => events,
+  [FilterType.FUTURE]: (events) => events.filter((event) => compareDates(event) === 'future'),
+  [FilterType.PRESENT]: (events) => events.filter((event) => compareDates(event) === 'present'),
+  [FilterType.PAST]: (events) => events.filter((event) => compareDates(event) === 'past'),
+};
+
 export {
   getRandomInteger,
   getRandomArrayElement,
@@ -67,5 +85,6 @@ export {
   getEventDuration,
   transformIntoKebabCase,
   capitalizeString,
-  idGenerator
+  idGenerator,
+  filter,
 };
