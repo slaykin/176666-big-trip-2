@@ -3,6 +3,7 @@ import SortView from '../view/sort-view.js';
 import PointListView from '../view/point-list-view.js';
 import PointView from '../view/point-view.js';
 import PointEditView from '../view/point-edit-view.js';
+import PointListEmptyView from '../view/point-list-empty-view.js';
 import {render, replace} from '../framework/render.js';
 
 export default class TripPresenter {
@@ -75,11 +76,16 @@ export default class TripPresenter {
 
   #renderTrip() {
     render(this.#tripComponent, this.#tripContainer);
-    render(new SortView(), this.#tripComponent.element);
-    render(this.#pointListComponent, this.#tripComponent.element);
 
-    for (const point of this.#tripPoints) {
-      this.#renderPoint(point);
+    if (this.#tripPoints.length === 0) {
+      render(new PointListEmptyView(), this.#tripComponent.element);
+    } else {
+      render(new SortView(), this.#tripComponent.element);
+      render(this.#pointListComponent, this.#tripComponent.element);
+
+      for (const point of this.#tripPoints) {
+        this.#renderPoint(point);
+      }
     }
   }
 }
