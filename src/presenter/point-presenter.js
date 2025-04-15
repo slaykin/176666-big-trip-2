@@ -1,92 +1,116 @@
-import TripView from '../view/trip-view.js';
-import SortView from '../view/sort-view.js';
-import PointListView from '../view/point-list-view.js';
-import PointListEmptyView from '../view/point-list-empty-view.js';
-import PointPresenter from './point-presenter.js';
-import { updateItem } from '../utils.js';
-import { render, RenderPosition } from '../framework/render.js';
+import PointView from '../view/point-view.js';
+import PointEditView from '../view/point-edit-view.js';
+import { render, replace, remove } from '../framework/render';
 
-export default class TripPresenter {
-  #tripContainer = null;
-  #pointsModel = null;
+const Mode = {
+  DEFAULT: 'DEFAULT',
+  EDITING: 'EDITING',
+};
 
-  #tripComponent = new TripView();
-  #pointListComponent = new PointListView();
-  #sortComponent = new SortView();
-  #pointListEmptyComponent = new PointListEmptyView();
+export default class PointPresenter {
+  #pointListContainer = null;
+  #tripDestinations = null;
+  #tripOffers = null;
+  #handleDataChange = null;
+  #handleModeChange = null;
 
-  #tripPoints = [];
-  #tripDestinations = [];
-  #tripOffers = [];
+  #pointComponent = null;
+  #pointEditComponent = null;
 
-  #pointPresenters = new Map();
+  #point = null;
+  #mode = Mode.DEFAULT;
 
-  constructor({tripContainer, pointsModel}) {
-    this.#tripContainer = tripContainer;
-    this.#pointsModel = pointsModel;
+  constructor ({pointListContainer, tripDestinations, tripOffers, onDataChange, onModeChange}) {
+    this.#pointListContainer = pointListContainer;
+    this.#tripDestinations = tripDestinations;
+    this.#tripOffers = tripOffers;
+    this.#handleDataChange = onDataChange;
+    this.#handleModeChange = onModeChange;
   }
 
-  init() {
-    this.#tripPoints = [...this.#pointsModel.points];
-    this.#tripDestinations = [...this.#pointsModel.destinations];
-    this.#tripOffers = [...this.#pointsModel.offers];
-    this.#renderTrip();
-  }
+  init(point) {
+    this.#point = point;
 
-  #renderSort() {
-    render(this.#sortComponent, this.#tripComponent.element, RenderPosition.AFTERBEGIN);
-  }
+    const previousPointComponent = this.#pointComponent;
+    const previousPointEditComponent = this.#pointEditComponent;
 
-  #handleModeChange = () => {
-    this.#pointPresenters.forEach((presenter) => presenter.resetView());
-  };
-
-  #handlePointChange = (updatedPoint) => {
-    this.#tripPoints = updateItem(this.#tripPoints, updatedPoint);
-    this.#pointPresenters.get(updatedPoint.id).init(updatedPoint);
-  };
-
-  #renderPoint(point) {
-    const pointPresenter = new PointPresenter({
-      pointListContainer: this.#pointListComponent.element,
-      tripDestinations: this.#tripDestinations,
-      tripOffers: this.#tripOffers,
-      onDataChange: this.#handlePointChange,
-      onModeChange: this.#handleModeChange,
+    this.#pointComponent = new PointView({
+      point: this.#point,
+      destinations: this.#tripDestinations,
+      offers: this.#tripOffers,
+      onEditClick: this.#handleEditClickOnCard,
+      onFavoriteClick: this.#handleFavoriteClick,
     });
 
-    pointPresenter.init(point);
+    this.#pointEditComponent = new PointEditView({
+      point: this.#point,
+      destinations: this.#tripDestinations,
+      offers: this.#tripOffers,
+      onFormSubmit: this.#handleFormSubmit,
+      onEditClick: this.#handleEditClickOnForm,
+    });
 
-    this.#pointPresenters.set(point.id, pointPresenter);
-  }
-
-  #renderPoints() {
-    this.#tripPoints.forEach((point) => this.#renderPoint(point));
-  }
-
-  #clearPointList() {
-    this.#pointPresenters.forEach((presenter) => presenter.destroy());
-    this.#pointPresenters.clear();
-  }
-
-  #renderPointList() {
-    render(this.#pointListComponent, this.#tripComponent.element);
-    this.#renderPoints();
-  }
-
-  #renderPointListEmpty() {
-    render(this.#pointListEmptyComponent, this.#tripComponent.element, RenderPosition.AFTERBEGIN);
-  }
-
-  #renderTrip() {
-    render(this.#tripComponent, this.#tripContainer);
-
-    if (this.#tripPoints.length === 0) {
-      this.#renderPointListEmpty();
+    if (previousPointComponent === null || previousPointEditComponent === null) {
+      render(this.#pointComponent, this.#pointListContainer);
       return;
     }
 
-    this.#renderSort();
-    this.#renderPointList();
+    if (this.#mode === Mode.DEFAULT) {
+      replace(this.#pointComponent, previousPointComponent);
+    }
+
+    if (this.#mode === Mode.EDITING) {
+      replace(this.#pointEditComponent, previousPointEditComponent);
+    }
+
+    remove(previousPointComponent);
+    remove(previousPointEditComponent);
   }
+
+  destroy() {
+    remove(this.#pointComponent);
+    remove(this.#pointEditComponent);
+  }
+
+  resetView() {
+    if (this.#mode !== Mode.DEFAULT) {
+      this.#replaceFormToCard();
+    }
+  }
+
+  #handleEscKeyDown = (evt) => {
+    if (evt.key === 'Escape') {
+      evt.preventDefault();
+      this.#replaceFormToCard();
+    }
+  };
+
+  #replaceCardToForm() {
+    replace(this.#pointEditComponent, this.#pointComponent);
+    document.addEventListener('keydown', this.#handleEscKeyDown);
+    this.#handleModeChange();
+    this.#mode = Mode.EDITING;
+  }
+
+  #replaceFormToCard() {
+    replace(this.#pointComponent, this.#pointEditComponent);
+    document.removeEventListener('keydown', this.#handleEscKeyDown);
+    this.#mode = Mode.DEFAULT;
+  }
+
+  #handleEditClickOnCard = () => {
+    this.#replaceCardToForm();
+  };
+
+  #handleEditClickOnForm = () => {
+    this.#replaceFormToCard();
+  };
+
+  #handleFormSubmit = () => {
+    this.#replaceFormToCard();
+  };
+
+  #handleFavoriteClick = () => {
+    this.#handleDataChange({...this.#point, isFavorite: !this.#point.isFavorite});
+  };
 }
