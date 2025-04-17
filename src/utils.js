@@ -36,9 +36,8 @@ function getEventDuration(earlierDate, laterDate) {
     return differenceInMinutes;
   } else if (totalDifferenceInMinutes < MINUTES_IN_DAY) {
     return `${differenceInHours} ${differenceInMinutes}`;
-  } else {
-    return `${differenceInDays} ${differenceInHours} ${differenceInMinutes}`;
   }
+  return `${differenceInDays} ${differenceInHours} ${differenceInMinutes}`;
 }
 
 function transformIntoKebabCase(string) {
@@ -64,9 +63,8 @@ function compareDates({dateFrom, dateTo}) {
     return 'future';
   } else if (new Date(dateTo) < new Date()) {
     return 'past';
-  } else {
-    return 'present';
   }
+  return 'present';
 }
 
 const filter = {
@@ -75,6 +73,10 @@ const filter = {
   [FilterType.PRESENT]: (events) => events.filter((event) => compareDates(event) === 'present'),
   [FilterType.PAST]: (events) => events.filter((event) => compareDates(event) === 'past'),
 };
+
+function updateItem(currentItems, updatedItem) {
+  return currentItems.map((item) => item.id === updatedItem.id ? updatedItem : item);
+}
 
 export {
   getRandomInteger,
@@ -87,4 +89,5 @@ export {
   capitalizeString,
   idGenerator,
   filter,
+  updateItem,
 };
