@@ -15,6 +15,7 @@ module.exports = {
       template: 'public/index.html',
     }),
     new CopyPlugin({
+      patterns: [{ from: 'public' }],
       patterns: [
         {
           from: 'public',
