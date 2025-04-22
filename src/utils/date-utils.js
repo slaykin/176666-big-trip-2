@@ -1,5 +1,9 @@
 import dayjs from 'dayjs';
 
+const HOURS_IN_DAY = 24;
+const MANUTES_IN_HOUR = 60;
+const REQUIRED_STRING_LENGTH = 2;
+
 
 function getFormattedDate(date, format) {
   return date ? dayjs(date).format(format) : '';
@@ -7,38 +11,21 @@ function getFormattedDate(date, format) {
 
 
 function getDateDifference(dateA, dateB) {
-  const diffDay = dayjs(dateA).diff(dateB, 'day');
-  const diffHour = dayjs(dateA).diff(dateB, 'hour') - (diffDay * 24);
-  const diffMinute = dayjs(dateA).diff(dateB, 'minute') - ((diffHour * 60) + ((diffDay * 24) * 60));
+  const days = dayjs(dateA).diff(dateB, 'day');
+  const hours = dayjs(dateA).diff(dateB, 'hour') - (days * HOURS_IN_DAY);
+  const minutes = dayjs(dateA).diff(dateB, 'minute') - ((hours * MANUTES_IN_HOUR) + ((days * HOURS_IN_DAY) * MANUTES_IN_HOUR));
 
-  let diffDayText = '';
-  if (diffDay > 0 && diffDay < 10) {
-    diffDayText = `0${diffDay}D`;
-  } else if (diffDay >= 10) {
-    diffDayText = `${diffDay}D`;
-  }
+  const daysText = days > 0 ? `${String(days).padStart(REQUIRED_STRING_LENGTH, '0')}D ` : '';
+  const hoursText = (days > 0 || hours > 0) ? `${String(hours).padStart(REQUIRED_STRING_LENGTH, '0')}H ` : '';
+  const minutesText = `${String(minutes).padStart(REQUIRED_STRING_LENGTH, '0')}M`;
 
-  let diffHourText = '';
-  if (diffHour > 0 && diffHour < 10) {
-    diffHourText = `0${diffHour}H`;
-  } else if (diffHour >= 10) {
-    diffHourText = `${diffHour}H`;
-  } else if (diffDay !== 0) {
-    diffHourText = '00H';
-  }
-
-  const diffMinuteText = diffMinute !== 0 ? `${diffMinute}M` : '00M';
-
-  const diffDateText = `${diffDayText} ${diffHourText} ${diffMinuteText}`;
-
-  return diffDateText;
+  return `${daysText}${hoursText}${minutesText}`;
 }
 
 function getEventDuration(event) {
   const eventDuration = dayjs(event.dateFrom).diff(event.dateTo);
   return eventDuration;
 }
-
 
 export {
   getFormattedDate,

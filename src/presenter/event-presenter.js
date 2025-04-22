@@ -83,36 +83,40 @@ export default class EventPresenter {
 
   resetView() {
     if(this.#mode !== Mode.DEFAULT) {
-      this.#displayEventComponent();
+      this.#eventEditComponent.reset(this.#event, this.#currentDestination, this.#currentOffersPack);
+      this.#replaceFormToCard();
     }
   }
 
-  #displayEventComponent() {
-    replace(this.#eventComponent, this.#eventEditComponent);
-    document.removeEventListener('keydown', this.#escKeyDownHandler);
-    this.#mode = Mode.DEFAULT;
-  }
-
-  #displayEventEditComponent() {
+  #replaceCardToForm() {
     replace(this.#eventEditComponent, this.#eventComponent);
     document.addEventListener('keydown', this.#escKeyDownHandler);
     this.#onModeChange();
     this.#mode = Mode.EDITING;
   }
 
+  #replaceFormToCard() {
+    replace(this.#eventComponent, this.#eventEditComponent);
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
+    this.#mode = Mode.DEFAULT;
+  }
+
   #escKeyDownHandler = (evt) => {
-    if (isEscapeKey(evt)) {
+    if (isEscapeKey(evt) &&
+        document.activeElement.tagName !== 'INPUT') {
       evt.preventDefault();
-      this.#displayEventComponent();
+      this.#eventEditComponent.reset(this.#event, this.#currentDestination, this.#currentOffersPack);
+      this.#replaceFormToCard();
     }
   };
 
   #onToggleShowClick = () => {
-    this.#displayEventEditComponent();
+    this.#replaceCardToForm();
   };
 
   #onToggleHideClick = () => {
-    this.#displayEventComponent();
+    this.#eventEditComponent.reset(this.#event, this.#currentDestination, this.#currentOffersPack);
+    this.#replaceFormToCard();
   };
 
   #onFavoriteClick = () => {
@@ -121,6 +125,6 @@ export default class EventPresenter {
 
   #onFormSubmit = (event) => {
     this.#onEventUpdate(event);
-    this.#displayEventComponent();
+    this.#replaceFormToCard();
   };
 }

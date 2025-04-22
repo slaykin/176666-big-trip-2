@@ -278,7 +278,7 @@ export const mockEvents = [
     id: 'f13e5fd4-42ab-4b2e-bdb6-4002532c33c5',
     basePrice: 7669,
     dateFrom: '2025-03-31T14:21:11.060Z',
-    dateTo: '2025-03-02T05:12:11.060Z',
+    dateTo: '2025-03-31T15:12:11.060Z',
     destination: 'c8eab9ce-c072-4114-9412-76f8023ba638',
     isFavorite: true,
     offers: [
