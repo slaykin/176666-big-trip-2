@@ -298,6 +298,9 @@ export default class EventEditView extends AbstractStatefulView {
   };
 
   #onDateFromClose = ([userDate]) => {
+    if (!userDate) {
+      return;
+    }
     const newFromDate = new Date(userDate);
     const oldToDate = new Date(this._state.dateTo);
 
