@@ -1,29 +1,37 @@
 import dayjs from 'dayjs';
 import {getEventDuration} from './date-utils';
 
-const sortTypes = [
+const SortTypes = {
+  DAY:'day',
+  EVENT:'event',
+  TIME: 'time',
+  PRICE: 'price',
+  OFFERS: 'offers'
+};
+
+const sortSettings = [
   {
-    name: 'day',
+    name: SortTypes.DAY,
     isAvailable: true,
     isDefault: true
   },
   {
-    name: 'event',
+    name: SortTypes.EVENT,
     isAvailable: false,
     isDefault: false
   },
   {
-    name: 'time',
+    name: SortTypes.TIME,
     isAvailable: true,
     isDefault: false
   },
   {
-    name: 'price',
+    name: SortTypes.PRICE,
     isAvailable: true,
     isDefault: false
   },
   {
-    name: 'offers',
+    name: SortTypes.OFFERS,
     isAvailable: false,
     isDefault: false
   }
@@ -63,19 +71,19 @@ function sortEventPrice(eventA, eventB) {
 
 export default class EventSort {
   static get sortTypes() {
-    return sortTypes;
+    return sortSettings;
   }
 
   static get defaultSortType() {
-    return sortTypes.find((sortType) => sortType.isDefault === true).name;
+    return sortSettings.find((sortType) => sortType.isDefault === true).name;
   }
 
   static sortEvents(sortType, events) {
     switch (sortType) {
-      case 'time':
+      case SortTypes.TIME:
         events.sort(sortEventTime);
         break;
-      case 'price':
+      case SortTypes.PRICE:
         events.sort(sortEventPrice);
         break;
       default:
