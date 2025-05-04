@@ -1,7 +1,6 @@
 import dayjs from 'dayjs';
-import {getEventDuration} from './date-utils';
 
-const SortTypes = {
+const SortType = {
   DAY:'day',
   EVENT:'event',
   TIME: 'time',
@@ -11,31 +10,35 @@ const SortTypes = {
 
 const sortSettings = [
   {
-    name: SortTypes.DAY,
+    name: SortType.DAY,
     isAvailable: true,
     isDefault: true
   },
   {
-    name: SortTypes.EVENT,
+    name: SortType.EVENT,
     isAvailable: false,
     isDefault: false
   },
   {
-    name: SortTypes.TIME,
+    name: SortType.TIME,
     isAvailable: true,
     isDefault: false
   },
   {
-    name: SortTypes.PRICE,
+    name: SortType.PRICE,
     isAvailable: true,
     isDefault: false
   },
   {
-    name: SortTypes.OFFERS,
+    name: SortType.OFFERS,
     isAvailable: false,
     isDefault: false
   }
 ];
+
+function getEventDuration(event) {
+  return dayjs(event.dateFrom).diff(event.dateTo);
+}
 
 function getWeightForNullDate(dateA, dateB) {
   if (dateA === null && dateB === null) {
@@ -55,13 +58,11 @@ function getWeightForNullDate(dateA, dateB) {
 
 function sortEventDay(eventA, eventB) {
   const weight = getWeightForNullDate(eventA.dateFrom, eventB.dateFrom);
-
   return weight ?? dayjs(eventA.dateFrom).diff(dayjs(eventB.dateFrom));
 }
 
 function sortEventTime(eventA, eventB) {
   const weight = getWeightForNullDate(eventA.dateFrom, eventB.dateFrom);
-
   return weight ?? getEventDuration(eventA) - getEventDuration(eventB);
 }
 
@@ -70,7 +71,7 @@ function sortEventPrice(eventA, eventB) {
 }
 
 export default class EventSort {
-  static get sortTypes() {
+  static get sortSettings() {
     return sortSettings;
   }
 
@@ -80,10 +81,10 @@ export default class EventSort {
 
   static sortEvents(sortType, events) {
     switch (sortType) {
-      case SortTypes.TIME:
+      case SortType.TIME:
         events.sort(sortEventTime);
         break;
-      case SortTypes.PRICE:
+      case SortType.PRICE:
         events.sort(sortEventPrice);
         break;
       default:
