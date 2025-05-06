@@ -1,7 +1,8 @@
+import Observable from '../framework/observable.js';
 import {mockOffersPacks} from '../mock/mock-offers-packs.js';
 
 
-export default class OffersModel {
+export default class OffersModel extends Observable {
   #offersPacks = [];
 
   init() {

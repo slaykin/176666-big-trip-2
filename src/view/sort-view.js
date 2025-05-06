@@ -1,9 +1,9 @@
 import {getCapitalizedString} from '../utils/common-utils.js';
 import AbstractView from '../framework/view/abstract-view.js';
 
-function createSortItemTemplate(sortItem) {
-  const {name, isAvailable, isDefault} = sortItem;
-  const isChecked = isDefault ? 'checked' : '';
+function createSortItemTemplate(sortItem, currentSortType) {
+  const {name, isAvailable} = sortItem;
+  const isChecked = name === currentSortType ? 'checked' : '';
   const isDisabled = isAvailable ? '' : 'disabled';
 
   return (
@@ -22,8 +22,8 @@ function createSortItemTemplate(sortItem) {
   );
 }
 
-function createSortTemplate(sortTypes) {
-  const sortItems = sortTypes.slice().map((sortItem) => createSortItemTemplate(sortItem)).join('');
+function createSortTemplate(sortSettings, currentSortType) {
+  const sortItems = sortSettings.slice().map((sortItem) => createSortItemTemplate(sortItem, currentSortType)).join('');
   return (
     `<form class="trip-events__trip-sort  trip-sort" action="#" method="get">
       ${sortItems}
@@ -33,26 +33,28 @@ function createSortTemplate(sortTypes) {
 
 
 export default class SortView extends AbstractView {
-  #sortTypes = null;
-  #onSortTypeChangeClick = null;
+  #sortSettings = null;
+  #currentSortType = null;
+  #handleSortClick = null;
 
-  constructor({sortTypes, onSortTypeChangeClick}) {
+  constructor({sortSettings, currentSortType, handleSortClick}) {
     super();
-    this.#sortTypes = sortTypes;
-    this.#onSortTypeChangeClick = onSortTypeChangeClick;
+    this.#sortSettings = sortSettings;
+    this.#currentSortType = currentSortType;
+    this.#handleSortClick = handleSortClick;
 
-    this.element.addEventListener('click', this.#sortTypeChangeHandler);
+    this.element.addEventListener('click', this.#sortClickHandler);
   }
 
   get template() {
-    return createSortTemplate(this.#sortTypes);
+    return createSortTemplate(this.#sortSettings, this.#currentSortType);
   }
 
-  #sortTypeChangeHandler = (evt) => {
+  #sortClickHandler = (evt) => {
     if (evt.target.tagName !== 'INPUT') {
       return;
     }
 
-    this.#onSortTypeChangeClick(evt.target.dataset.sortType);
+    this.#handleSortClick(evt.target.dataset.sortType);
   };
 }
