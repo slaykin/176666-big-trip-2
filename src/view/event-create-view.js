@@ -209,6 +209,7 @@ export default class EventCreateView extends AbstractStatefulView {
     this.#handleCancelClick = handleCancelClick;
 
     this._restoreHandlers();
+    this.#validateForm();
   }
 
   get template() {
@@ -238,13 +239,30 @@ export default class EventCreateView extends AbstractStatefulView {
     this.element.querySelector('.event__input--price').addEventListener('change', this.#priceChangeHandler);
     this.element.querySelector('form').addEventListener('submit', this.#formSubmitHandler);
     this.element.querySelector('.event__reset-btn').addEventListener('click', this.#cancelClickHandler);
+    this.element.querySelector('.event__input--destination').addEventListener('input', this.#validateForm);
+    this.element.querySelector('.event__input--price').addEventListener('input', this.#validateForm);
+
     if(this._state.currentOffersPack.offers.length !== 0) {
       this.element.querySelector('.event__available-offers').addEventListener('click', this.#offersClickHandler);
     }
 
     this.#setDateFromPicker();
     this.#setDateToPicker();
+
+    const destinationInput = this.element.querySelector('.event__input--destination');
+    const priceInput = this.element.querySelector('.event__input--price');
+
+    destinationInput.addEventListener('input', this.#validateForm);
+    priceInput.addEventListener('input', this.#validateForm);
+
+    destinationInput.addEventListener('blur', this.#validateForm);
+    priceInput.addEventListener('blur', this.#validateForm);
   }
+
+  #validateForm = () => {
+    const isSubmitDisabled = !this._state.type || !this._state.currentDestination || !this._state.basePrice;
+    this.element.querySelector('.event__save-btn').disabled = isSubmitDisabled;
+  };
 
   #setDateFromPicker() {
     this.#datepicker = flatpickr(
@@ -340,6 +358,11 @@ export default class EventCreateView extends AbstractStatefulView {
 
   #formSubmitHandler = (evt) => {
     evt.preventDefault();
+
+    if (!this._state.type || !this._state.currentDestination || !this._state.basePrice) {
+      return;
+    }
+
     this.#handleFormSubmit(EventCreateView.parseStateToData(this._state));
   };
 
