@@ -1,31 +1,29 @@
 import {render, remove, replace} from '../framework/render.js';
-import {UserAction, UpdateType, isEscapeKey} from '../utils/common-utils.js';
-import {isDatesEqual} from '../utils/date-utils.js';
+import {UserAction, UpdateType} from '../const.js';
+import {isEscapeKey} from '../utils/common.js';
+import {isSameDate} from '../utils/date.js';
 import EventView from '../view/event-view.js';
 import EventEditView from '../view/event-edit-view.js';
 
 const Mode = {
   DEFAULT: 'default',
-  EDITING: 'editing'
+  EDITING: 'editing',
 };
 
 export default class EventPresenter {
   #eventListContainer = null;
-
   #eventComponent = null;
   #eventEditComponent = null;
-
   #mode = Mode.DEFAULT;
   #event = null;
-
   #currentDestination = null;
   #currentOffersPack = null;
+  #checkedOffers = null;
   #allDestinations = null;
   #allOffersPacks = null;
   #eventTypes = null;
-
   #handleViewAction = null;
-  handleModeChange = null;
+  #handleModeChange = null;
 
   constructor({
     eventListContainer,
@@ -34,19 +32,25 @@ export default class EventPresenter {
     eventTypes,
     handleViewAction,
     handleModeChange
-  }){
+  }) {
     this.#eventListContainer = eventListContainer;
     this.#allDestinations = allDestinations;
     this.#allOffersPacks = allOffersPacks;
     this.#eventTypes = eventTypes;
     this.#handleViewAction = handleViewAction;
-    this.handleModeChange = handleModeChange;
+    this.#handleModeChange = handleModeChange;
   }
 
-  init({event, currentDestination, currentOffersPack}) {
+  init({
+    event,
+    currentDestination,
+    currentOffersPack,
+    checkedOffers
+  }) {
     this.#event = event;
     this.#currentDestination = currentDestination;
     this.#currentOffersPack = currentOffersPack;
+    this.#checkedOffers = checkedOffers;
 
     const prevEventComponent = this.#eventComponent;
     const prevEventEditComponent = this.#eventEditComponent;
@@ -54,7 +58,7 @@ export default class EventPresenter {
     this.#eventComponent = new EventView({
       event: this.#event,
       currentDestination: this.#currentDestination,
-      currentOffersPack: this.#currentOffersPack,
+      checkedOffers: this.#checkedOffers,
       handleFavoriteClick: this.#favoriteClickHandler,
       handleToggleClick: this.#toggleShowClickHandler
     });
@@ -81,7 +85,8 @@ export default class EventPresenter {
     }
 
     if (this.#mode === Mode.EDITING) {
-      replace(this.#eventEditComponent, prevEventEditComponent);
+      replace(this.#eventComponent, prevEventEditComponent);
+      this.#mode = Mode.DEFAULT;
     }
 
     remove(prevEventComponent);
@@ -91,19 +96,55 @@ export default class EventPresenter {
   destroy() {
     remove(this.#eventComponent);
     remove(this.#eventEditComponent);
+    document.removeEventListener('keydown', this.#escKeyDownHandler);
   }
 
   resetView() {
-    if(this.#mode !== Mode.DEFAULT) {
+    if (this.#mode !== Mode.DEFAULT) {
       this.#eventEditComponent.reset(this.#event, this.#currentDestination, this.#currentOffersPack);
       this.#replaceFormToCard();
     }
   }
 
+  setSaving() {
+    if (this.#mode === Mode.EDITING) {
+      this.#eventEditComponent.updateElement({
+        isDisabled: true,
+        isSaving: true,
+      });
+    }
+  }
+
+  setDeleting() {
+    if (this.#mode === Mode.EDITING) {
+      this.#eventEditComponent.updateElement({
+        isDisabled: true,
+        isDeleting: true,
+      });
+    }
+  }
+
+  setAborting() {
+    if (this.#mode === Mode.DEFAULT) {
+      this.#eventComponent.shake();
+      return;
+    }
+
+    const resetFormState = () => {
+      this.#eventEditComponent.updateElement({
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
+      });
+    };
+
+    this.#eventEditComponent.shake(resetFormState);
+  }
+
   #replaceCardToForm() {
     replace(this.#eventEditComponent, this.#eventComponent);
     document.addEventListener('keydown', this.#escKeyDownHandler);
-    this.handleModeChange();
+    this.#handleModeChange();
     this.#mode = Mode.EDITING;
   }
 
@@ -140,8 +181,8 @@ export default class EventPresenter {
   };
 
   #formSubmitHandler = (event) => {
-    const isMinorUpdate = !isDatesEqual(this.#event.dateFrom, event.dateFrom) ||
-    !isDatesEqual(this.#event.dateTo, event.dateTo) ||
+    const isMinorUpdate = !isSameDate(this.#event.dateFrom, event.dateFrom) ||
+    !isSameDate(this.#event.dateTo, event.dateTo) ||
     (this.#event.basePrice !== event.basePrice);
 
     this.#handleViewAction(
@@ -149,7 +190,6 @@ export default class EventPresenter {
       isMinorUpdate ? UpdateType.MINOR : UpdateType.PATCH,
       event
     );
-    this.#replaceFormToCard();
   };
 
   #deleteClickHandler = (event) => {
