@@ -273,7 +273,7 @@ export default class EventCreateView extends AbstractStatefulView {
       this.element.querySelector(`#event-start-time-${this._state.id}`),
       {
         ...getFlatpickrConfig(),
-        onClose: this.#dateFromCloseHandler,
+        onChange: this.#dateFromCloseHandler,
       },
     );
   }
@@ -284,7 +284,7 @@ export default class EventCreateView extends AbstractStatefulView {
       {
         ...getFlatpickrConfig(),
         minDate: this._state.dateFrom,
-        onClose: this.#dateToCloseHandler,
+        onChange: this.#dateToCloseHandler,
       },
     );
   }
