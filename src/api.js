@@ -1,4 +1,4 @@
-const END_POINT = 'https://22.objects.htmlacademy.pro/big-trip';
+const END_POINT = 'https://23.objects.htmlacademy.pro/big-trip';
 const AUTHORIZATION = 'Basic qwertyuih';
 
 const HttpMethod = {
